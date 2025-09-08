@@ -13,7 +13,7 @@ Stack
 
 Quick Start
 1) Prereqs: Node 18+, Redis, MySQL.
-2) Copy `.env.example` to `.env` and fill values.
+2) Copy `.env.example` to `.env` and fill in values.
 3) Create DB and tables:
    - Create database: `CREATE DATABASE tap_api;`
    - Run schema: see `sql/schema.sql`.
@@ -83,12 +83,7 @@ MySQL Schema
 - See `sql/schema.sql` for `users`, `balances`, `tap_daily`, `transactions`.
 
 Operational Notes
-- Source of truth: Redis is used for fast, atomic gates and counters; MySQL is the durable store. If desired, add a periodic reconciliation job to compact Redis state to MySQL and/or audit for drift.
-- Hardening ideas:
-  - Add Telegram Mini App initData verification if fronted by Telegram.
-  - Move to `rate-limiter-flexible` for advanced limiting strategies.
-  - Add per-user anti-abuse heuristics (device fingerprinting, slop detection, velocity checks).
-  - Enforce minimal `taps` batch sizes and add jittered client batching (e.g., send every ~1s).
+- Source of truth: Redis is used for fast, atomic gates and counters; MySQL is the durable store.
 
 Client HMAC Example (pseudo-code)
 ```
