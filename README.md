@@ -101,7 +101,3 @@ Local Development Tips
 - Set `DRY_RUN=true` to avoid real TON transfers.
 - Use `curl` to validate HMAC and endpoints.
 - Use `redis-cli` to inspect keys: `tap:<user>:<yyyymmdd>`, `balance:dogg:<user>`.
-
-License
-- Proprietary / private by default. Add a LICENSE if you plan to open-source.
-
