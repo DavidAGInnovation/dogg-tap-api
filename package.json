@@ -1,0 +1,23 @@
+{
+  "name": "tap-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "NODE_ENV=production node src/server.js",
+    "lint": "echo 'no linter configured'",
+    "test:local": "USE_INMEMORY=true SKIP_MYSQL=true HMAC_SECRET=test-secret DRY_RUN=true START_SERVER=false node scripts/test_local.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ioredis": "^5.4.1",
+    "mysql2": "^3.9.4",
+    "dotenv": "^16.4.5",
+    "morgan": "^1.10.0",
+    "helmet": "^7.1.0",
+    "@ton/ton": "^15.1.0",
+    "@scure/bip39": "^1.4.0",
+    "supertest": "^7.0.0"
+  }
+}
