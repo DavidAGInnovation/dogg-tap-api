@@ -6,7 +6,7 @@ import { redis, tapLua } from './redis.js';
 import { verifyHmacSignature, isFreshTimestamp } from './security.js';
 import { ipRateLimiter } from './rateLimiter.js';
 import { ensureUserExists, upsertDailyTaps, upsertBalance, recordTransaction } from './mysql.js';
-import { sendTon } from './ton.js';
+import { sendTon, mintDogNft } from './ton.js';
 
 export const app = express();
 
@@ -117,7 +117,7 @@ app.post('/tap', handleIdempotency, async (req, res) => {
 
 app.post('/payout/ton', handleIdempotency, async (req, res) => {
   if (!(await verifyRequest(req, res))) return;
-  const { userId, toAddress } = req.body || {};
+  const { userId, toAddress, mintNft, dog } = req.body || {};
   if (!userId || typeof userId !== 'number' || !toAddress || typeof toAddress !== 'string') {
     return res.status(400).json({ error: 'invalid_request' });
   }
@@ -125,7 +125,36 @@ app.post('/payout/ton', handleIdempotency, async (req, res) => {
     await ensureUserExists(userId);
     const result = await sendTon({ toAddress, amountTon: 0.01, comment: 'DOGG payout' });
     await recordTransaction(userId, 'payout_ton', 0.01, result.txHash || null);
-    const payload = { ok: true, dryRun: !!result.dryRun, txHash: result.txHash || null };
+
+    let nft = null;
+    if (mintNft) {
+      if (!dog || typeof dog !== 'object') {
+        return res.status(400).json({ error: 'invalid_dog_metadata' });
+      }
+      if (!config.ton.dogNftContract) {
+        // Gracefully inform client that NFT minting is not configured
+        nft = { ok: false, error: 'nft_not_configured' };
+      } else {
+        try {
+          const md = {
+            name: dog.name || 'Dog NFT',
+            image: dog.image || '',
+            breed: dog.breed || '',
+            attributes: dog.attributes || [],
+            // optional link to user/account
+            userId
+          };
+          const nftRes = await mintDogNft({ ownerAddress: toAddress, metadata: md, amountTon: 0.05 });
+          await recordTransaction(userId, 'nft_mint', 0, nftRes.txHash || null);
+          nft = { ok: true, dryRun: !!nftRes.dryRun, txHash: nftRes.txHash || null };
+        } catch (e) {
+          console.error('[nft] mint error', e);
+          nft = { ok: false, error: 'mint_failed' };
+        }
+      }
+    }
+
+    const payload = { ok: true, dryRun: !!result.dryRun, txHash: result.txHash || null, nft };
     if (res.locals.idemKey) await redis.setex(res.locals.idemKey, 300, JSON.stringify(payload));
     res.json(payload);
   } catch (e) {

@@ -7,17 +7,28 @@
     "dev": "node src/server.js",
     "start": "NODE_ENV=production node src/server.js",
     "lint": "echo 'no linter configured'",
-    "test:local": "USE_INMEMORY=true SKIP_MYSQL=true HMAC_SECRET=test-secret DRY_RUN=true START_SERVER=false node scripts/test_local.js"
+    "test:local": "USE_INMEMORY=true SKIP_MYSQL=true HMAC_SECRET=test-secret DRY_RUN=true START_SERVER=false node scripts/test_local.js",
+    "test:nft": "USE_INMEMORY=true SKIP_MYSQL=true HMAC_SECRET=test-secret DRY_RUN=true START_SERVER=false DOGG_NFT_COLLECTION_ADDRESS=EQDUMMYCOLLECTION node scripts/test_nft_local.js",
+    "test:cases": "USE_INMEMORY=true SKIP_MYSQL=true HMAC_SECRET=test-secret DRY_RUN=true START_SERVER=false node scripts/test_api_cases.js",
+    "build:contracts": "tact -o build contracts/dog_nft.tact",
+    "verify:nft": "node scripts/verify_nft.js",
+    "mint:verify": "node scripts/mint_and_verify_nft.js",
+    "test:abi": "node scripts/test_mint_abi.js"
   },
+  "bin": {},
   "dependencies": {
-    "express": "^4.19.2",
-    "ioredis": "^5.4.1",
-    "mysql2": "^3.9.4",
-    "dotenv": "^16.4.5",
-    "morgan": "^1.10.0",
-    "helmet": "^7.1.0",
-    "@ton/ton": "^15.1.0",
     "@scure/bip39": "^1.4.0",
+    "@ton/core": "^0.61.0",
+    "@ton/ton": "^15.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "ioredis": "^5.4.1",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.9.4",
     "supertest": "^7.0.0"
+  },
+  "devDependencies": {
+    "@tact-lang/compiler": "^1.6.13"
   }
 }

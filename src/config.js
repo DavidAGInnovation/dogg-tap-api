@@ -24,7 +24,8 @@ export const config = {
     endpointUrl: process.env.TON_ENDPOINT_URL,
     apiKey: process.env.TON_API_KEY,
     mnemonic: process.env.TON_MNEMONIC,
-    workchain: Number(process.env.TON_WALLET_WORKCHAIN || 0)
+    workchain: Number(process.env.TON_WALLET_WORKCHAIN || 0),
+    dogNftContract: process.env.DOGG_NFT_COLLECTION_ADDRESS || null
   },
   dryRun: String(process.env.DRY_RUN || 'true').toLowerCase() === 'true'
 };

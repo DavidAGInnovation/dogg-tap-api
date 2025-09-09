@@ -25,10 +25,9 @@ CREATE TABLE IF NOT EXISTS tap_daily (
 CREATE TABLE IF NOT EXISTS transactions (
   id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT NOT NULL,
-  type ENUM('tap_reward','payout_ton') NOT NULL,
+  type ENUM('tap_reward','payout_ton','nft_mint') NOT NULL,
   amount DECIMAL(24,8) NOT NULL,
   chain_tx_hash VARCHAR(128) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
-

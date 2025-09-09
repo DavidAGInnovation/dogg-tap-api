@@ -10,6 +10,7 @@ Stack
 - Redis (hot path: taps and balances)
 - MySQL (system of record: users, daily counters, balances, transactions)
 - TON SDK (via `@ton/ton`) for payouts
+- Tact/FunC contract for Dog NFTs (optional mint on payout)
 
 Quick Start
 1) Prereqs: Node 18+, Redis, MySQL.
@@ -79,8 +80,12 @@ Behavior:
 - If `DRY_RUN=true`, returns a fake `txHash` without chain calls.
 - Otherwise, uses `@ton/ton` to send 0.01 TON from the server wallet to `toAddress` and records a `transactions` row (type `payout_ton`).
 
+Optional NFT mint:
+- If request includes `{"mintNft": true, "dog": { name, breed, image, attributes }}` and `DOGG_NFT_COLLECTION_ADDRESS` is set, the server will also mint a Dog NFT to `toAddress` after the TON payout by calling the on-chain minter contract.
+- Returns an `nft` field with the mint result.
+
 MySQL Schema
-- See `sql/schema.sql` for `users`, `balances`, `tap_daily`, `transactions`.
+- See `sql/schema.sql` for `users`, `balances`, `tap_daily`, `transactions` (types: `tap_reward`, `payout_ton`, `nft_mint`).
 
 Operational Notes
 - Source of truth: Redis is used for fast, atomic gates and counters; MySQL is the durable store.
@@ -96,3 +101,91 @@ Local Development Tips
 - Set `DRY_RUN=true` to avoid real TON transfers.
 - Use `curl` to validate HMAC and endpoints.
 - Use `redis-cli` to inspect keys: `tap:<user>:<yyyymmdd>`, `balance:dogg:<user>`.
+
+Dog NFTs (Tact Contract)
+
+Overview
+- A minimal Tact contract `contracts/dog_nft.tact` that lets an admin wallet mint Dog NFTs with off-chain JSON metadata. Contract enforces admin-only minting: only messages from the configured `owner` address are accepted for `OP_MINT`.
+- Not a full TIP-4 implementation. It records owner and metadata per tokenId and exposes get-methods.
+
+Storage
+- `owner`: admin address authorized to mint
+- `nextId`: uint64 token counter
+- `tokens`: map tokenId -> { owner, metadata }
+
+Message ABI (internal)
+- OP_MINT: `0x4D494E54` ("MINT")
+- Body: `uint32 op | uint64 query_id | address newOwner | ref(metadataCell)`
+- `metadataCell` stores JSON string via `storeStringTail` (example below).
+
+Get Methods
+- `get_next_id() -> uint64`
+- `get_token(id:uint64) -> (owner:Address, metadata:Cell)` where `metadata` is a cell containing the UTF‑8 JSON string
+
+Compile & Deploy (Tact)
+- Install Tact CLI: `npm i -g @tact-lang/compiler` (or see Tact docs)
+- Compile: `tact compile contracts/dog_nft.tact`
+- Deploy: Use your preferred TON tool (e.g., blueprint, ton-cli). Set the contract init param `owner` to your server wallet address (the same wallet used by the API). Save the deployed address to `.env` as `DOGG_NFT_COLLECTION_ADDRESS`.
+
+Server Integration
+- Env: set `DOGG_NFT_COLLECTION_ADDRESS` to the deployed minter address.
+- The API constructs the mint message as described and sends ~0.05 TON for gas to the minter from the server wallet.
+
+Request Example
+```
+POST /payout/ton
+Headers:
+  Content-Type: application/json
+  X-Signature: <hex hmac>
+Body:
+{
+  "userId": 123,
+  "toAddress": "EQC...",
+  "mintNft": true,
+  "dog": {
+    "name": "Buddy",
+    "breed": "Shiba Inu",
+    "image": "ipfs://.../buddy.png",
+    "attributes": [
+      { "trait_type": "Cuteness", "value": 10 },
+      { "trait_type": "Speed", "value": 7 }
+    ]
+  }
+}
+```
+
+Response Example
+```
+{
+  "ok": true,
+  "dryRun": false,
+  "txHash": "<payout_tx>",
+  "nft": { "ok": true, "txHash": "<mint_tx>" }
+}
+```
+
+Metadata Encoding
+- Server encodes the dog metadata as JSON and stores it in a cell using `storeStringTail`. The contract stores this cell per token. Clients can read the cell from `get_token` and decode as a UTF‑8 string off-chain.
+
+Notes & Limitations
+- This is a simple, educational NFT minter. It does not support transfers or TIP-4 index/royalties. For production NFTs, consider using full TIP-4/TIP-64 implementations or extend this contract.
+
+Verify On-Chain State
+- Script: `scripts/verify_nft.js`
+- Usage:
+  - `TON_ENDPOINT_URL=... TON_API_KEY=... DOGG_NFT_COLLECTION_ADDRESS=EQ... node scripts/verify_nft.js`
+  - Or specify an ID and address: `node scripts/verify_nft.js --id 0 --address EQ...`
+- Output:
+
+Mint And Verify
+- Script: `scripts/mint_and_verify_nft.js`
+- Danger: This sends a real mint transaction. Ensure your server wallet has funds and you are on the intended network.
+- Required env: `TON_ENDPOINT_URL`, `TON_MNEMONIC`, `DOGG_NFT_COLLECTION_ADDRESS` (and `TON_API_KEY` if the endpoint requires it)
+- Example:
+  - `TON_ENDPOINT_URL=... TON_API_KEY=... TON_MNEMONIC="word1 ... word24" DOGG_NFT_COLLECTION_ADDRESS=EQ... \
+     node scripts/mint_and_verify_nft.js --to EQ... --name "Buddy" --breed "Shiba" --image ipfs://... \
+     --attributes '[{"trait_type":"Cuteness","value":10}]' --amountTon 0.05 --confirm`
+- Behavior:
+  - Reads `get_next_id`, sends a mint message to the minter with your metadata, then polls `get_token(id)` until it appears or times out.
+  - Prints `nextId`
+  - If `--id` provided, prints token owner and metadata JSON directly (decoded from the cell). If decoding fails, prints the metadata cell BOC in base64.

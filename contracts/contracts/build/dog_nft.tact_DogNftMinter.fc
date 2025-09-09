@@ -1,0 +1,396 @@
+#pragma version =0.4.6;
+#pragma allow-post-modification;
+#pragma compute-asm-ltr;
+
+;; dog_nft.tact_DogNftMinter.headers.fc
+;;
+;; Header files for DogNftMinter
+;; NOTE: declarations are sorted for optimal order
+;;
+
+;; __tact_context_get_sender
+slice __tact_context_get_sender() inline;
+
+;; __tact_dict_get_int_cell
+cell __tact_dict_get_int_cell(cell d, int kl, int k) inline;
+
+;; __tact_dict_set_int_cell
+(cell, ()) __tact_dict_set_int_cell(cell d, int kl, int k, cell v) inline;
+
+;; $Token$_store
+builder $Token$_store(builder build_0, (slice, cell) v) inline;
+
+;; $Token$_store_cell
+cell $Token$_store_cell((slice, cell) v, builder b) inline;
+
+;; $Token$_load
+(slice, ((slice, cell))) $Token$_load(slice sc_0) inline;
+
+;; $Token$_as_optional
+tuple $Token$_as_optional((slice, cell) v) inline;
+
+;; $Token$_load_opt
+tuple $Token$_load_opt(cell cl) inline;
+
+;; $DogNftMinter$_store
+builder $DogNftMinter$_store(builder build_0, (slice, int, cell) v) inline;
+
+;; $DogNftMinter$_load
+(slice, ((slice, int, cell))) $DogNftMinter$_load(slice sc_0) inline;
+
+;; $Token$_get_owner
+_ $Token$_get_owner((slice, cell) v) inline;
+
+;; $Token$_get_metadata
+_ $Token$_get_metadata((slice, cell) v) inline;
+
+;; $Token$_not_null
+((slice, cell)) $Token$_not_null(tuple v) inline;
+
+;; $TokenOut$_to_external
+(slice, cell) $TokenOut$_to_external(((slice, cell)) v) inline;
+
+;; $DogNftMinter$init$_load
+(slice, ((slice))) $DogNftMinter$init$_load(slice sc_0) inline;
+
+;; $DogNftMinter$_contract_init
+(slice, int, cell) $DogNftMinter$_contract_init(slice $owner) impure inline;
+
+;; $DogNftMinter$_contract_load
+(slice, int, cell) $DogNftMinter$_contract_load() impure inline;
+
+;; $DogNftMinter$_contract_store
+() $DogNftMinter$_contract_store((slice, int, cell) v) impure inline;
+
+;; $DogNftMinter$_fun_get_next_id
+((slice, int, cell), int) $DogNftMinter$_fun_get_next_id((slice, int, cell) $self) impure inline_ref;
+
+;; $TokenOut$_constructor_owner_metadata
+((slice, cell)) $TokenOut$_constructor_owner_metadata(slice $owner, cell $metadata) inline;
+
+;; $DogNftMinter$_fun_get_token
+((slice, int, cell), (slice, cell)) $DogNftMinter$_fun_get_token((slice, int, cell) $self, int $id) impure inline_ref;
+
+;; $Token$_constructor_owner_metadata
+((slice, cell)) $Token$_constructor_owner_metadata(slice $owner, cell $metadata) inline;
+
+
+;; dog_nft.tact_DogNftMinter.stdlib.fc
+global (int, slice, int, slice) __tact_context;
+global slice __tact_context_sender;
+global cell __tact_child_contract_codes;
+global int __tact_randomized;
+
+slice __tact_context_get_sender() inline {
+    return __tact_context_sender;
+}
+
+forall X0, X1 -> tuple __tact_tuple_create_2((X0, X1) v) asm """
+    2 TUPLE
+""";
+
+forall X0, X1 -> (X0, X1) __tact_tuple_destroy_2(tuple v) asm """
+    2 UNTUPLE
+""";
+
+cell __tact_dict_get_int_cell(cell d, int kl, int k) inline {
+    var (r, ok) = idict_get_ref?(d, kl, k);
+    if (ok) {
+        return r;
+    } else {
+        return null();
+    }
+}
+
+(cell, ()) __tact_dict_set_int_cell(cell d, int kl, int k, cell v) inline {
+    if (null?(v)) {
+        var (r, ok) = idict_delete?(d, kl, k);
+        return (r, ());
+    } else {
+        return (idict_set_ref(d, kl, k, v), ());
+    }
+}
+
+(slice, cell) $Slice$_fun_loadRef(slice $self) impure asm( -> 1 0) """
+    LDREF
+""";
+
+(slice, slice) $Slice$_fun_loadAddress(slice $self) impure asm( -> 1 0) """
+    LDMSGADDR
+""";
+
+;; dog_nft.tact_DogNftMinter.storage.fc
+;;
+;; Type: Token
+;; TLB: _ owner:address metadata:^cell = Token
+;;
+
+builder $Token$_store(builder build_0, (slice, cell) v) inline {
+    var (v'owner, v'metadata) = v;
+    build_0 = build_0.store_slice(v'owner);
+    build_0 = build_0.store_ref(v'metadata);
+    return build_0;
+}
+
+cell $Token$_store_cell((slice, cell) v, builder b) inline {
+    return $Token$_store(b, v).end_cell();
+}
+
+(slice, ((slice, cell))) $Token$_load(slice sc_0) inline {
+    var v'owner = sc_0~load_msg_addr();
+    var v'metadata = sc_0~load_ref();
+    return (sc_0, (v'owner, v'metadata));
+}
+
+tuple $Token$_as_optional((slice, cell) v) inline {
+    var (v'owner, v'metadata) = v;
+    return __tact_tuple_create_2(v'owner, v'metadata);
+}
+
+tuple $Token$_load_opt(cell cl) inline {
+    if (null?(cl)) {
+        return null();
+    }
+    var sc = cl.begin_parse();
+    return $Token$_as_optional(sc~$Token$_load());
+}
+
+_ $Token$_get_owner((slice, cell) v) inline {
+    var (v'owner, v'metadata) = v;
+    return v'owner;
+}
+
+_ $Token$_get_metadata((slice, cell) v) inline {
+    var (v'owner, v'metadata) = v;
+    return v'metadata;
+}
+
+((slice, cell)) $Token$_not_null(tuple v) inline {
+    throw_if(128, null?(v));
+    var (slice vvv'owner, cell vvv'metadata) = __tact_tuple_destroy_2(v);
+    return (vvv'owner, vvv'metadata);
+}
+
+((slice, cell)) $Token$_constructor_owner_metadata(slice $owner, cell $metadata) inline {
+    return ($owner, $metadata);
+}
+
+;;
+;; Type: TokenOut
+;; TLB: _ owner:address metadata:^cell = TokenOut
+;;
+
+(slice, cell) $TokenOut$_to_external(((slice, cell)) v) inline {
+    var (v'owner, v'metadata) = v; 
+    return (v'owner, v'metadata);
+}
+
+((slice, cell)) $TokenOut$_constructor_owner_metadata(slice $owner, cell $metadata) inline {
+    return ($owner, $metadata);
+}
+
+;;
+;; Type: DogNftMinter
+;; TLB: _ owner:address nextId:int257 tokens:dict<int, ^Token{owner:address,metadata:^cell}> = DogNftMinter
+;;
+
+builder $DogNftMinter$_store(builder build_0, (slice, int, cell) v) inline {
+    var (v'owner, v'nextId, v'tokens) = v;
+    build_0 = build_0.store_slice(v'owner);
+    build_0 = build_0.store_int(v'nextId, 257);
+    build_0 = build_0.store_dict(v'tokens);
+    return build_0;
+}
+
+(slice, ((slice, int, cell))) $DogNftMinter$_load(slice sc_0) inline {
+    var v'owner = sc_0~load_msg_addr();
+    var v'nextId = sc_0~load_int(257);
+    var v'tokens = sc_0~load_dict();
+    return (sc_0, (v'owner, v'nextId, v'tokens));
+}
+
+(slice, ((slice))) $DogNftMinter$init$_load(slice sc_0) inline {
+    var v'owner = sc_0~load_msg_addr();
+    return (sc_0, (v'owner));
+}
+
+(slice, int, cell) $DogNftMinter$_contract_load() impure inline {
+    slice $sc = get_data().begin_parse();
+    int $loaded = $sc~load_int(1);
+    if ($loaded) {
+        return $sc~$DogNftMinter$_load();
+    }
+    else {
+        (slice $owner) = $sc~$DogNftMinter$init$_load();
+        $sc.end_parse();
+        return $DogNftMinter$_contract_init($owner);
+    }
+}
+
+() $DogNftMinter$_contract_store((slice, int, cell) v) impure inline {
+    builder b = begin_cell();
+    b = b.store_int(true, 1);
+    b = $DogNftMinter$_store(b, v);
+    set_data(b.end_cell());
+}
+
+;;
+;; Contract DogNftMinter functions
+;;
+
+(slice, int, cell) $DogNftMinter$_contract_init(slice $owner) impure inline {
+    var (($self'owner, $self'nextId, $self'tokens)) = (null(), null(), null());
+    $self'owner = $owner;
+    $self'nextId = 0;
+    return ($self'owner, $self'nextId, $self'tokens);
+}
+
+((slice, int, cell), int) $DogNftMinter$_fun_get_next_id((slice, int, cell) $self) impure inline_ref {
+    var (($self'owner, $self'nextId, $self'tokens)) = $self;
+    var $fresh$ret_0 = $self'nextId;
+    return (($self'owner, $self'nextId, $self'tokens), $fresh$ret_0);
+}
+
+((slice, int, cell), (slice, cell)) $DogNftMinter$_fun_get_token((slice, int, cell) $self, int $id) impure inline_ref {
+    var (($self'owner, $self'nextId, $self'tokens)) = $self;
+    tuple $tok = $Token$_load_opt(__tact_dict_get_int_cell($self'tokens, 257, $id));
+    throw_unless(13133, (~ null?($tok)));
+    var $fresh$ret_1 = $TokenOut$_constructor_owner_metadata($Token$_get_owner($Token$_not_null($tok)), $Token$_get_metadata($Token$_not_null($tok)));
+    return (($self'owner, $self'nextId, $self'tokens), $fresh$ret_1);
+}
+
+;;
+;; Get methods of a Contract DogNftMinter
+;;
+
+_ %get_next_id() method_id(101932) {
+    var self = $DogNftMinter$_contract_load();
+    var res = self~$DogNftMinter$_fun_get_next_id();
+    return res;
+}
+
+_ %get_token(int $id) method_id(96041) {
+    int $id = $id;
+    var self = $DogNftMinter$_contract_load();
+    var res = self~$DogNftMinter$_fun_get_token($id);
+    return $TokenOut$_to_external(res);
+}
+
+;;
+;; Routing of a Contract DogNftMinter
+;;
+
+
+() recv_internal(int msg_value, cell in_msg_cell, slice in_msg) impure {
+    
+    ;; Context
+    var cs = in_msg_cell.begin_parse();
+    cs~skip_bits(2);
+    var msg_bounceable = cs~load_int(1);
+    var msg_bounced = cs~load_int(1);
+    slice msg_sender_addr = cs~load_msg_addr();
+    __tact_context = (msg_bounceable, msg_sender_addr, msg_value, cs);
+    __tact_context_sender = msg_sender_addr;
+    
+    ;; Load contract data
+    var ($self'owner, $self'nextId, $self'tokens) = $DogNftMinter$_contract_load();
+    
+    ;; Handle bounced messages
+    if (msg_bounced) { return (); }
+    slice $msg = in_msg;
+    throw_unless(23125, ( equal_slices_bits(__tact_context_get_sender(), $self'owner) ));
+    slice $body = $msg;
+    if (($body~load_uint(32) == 1296649812)) {
+        int $_qid = $body~load_uint(64);
+        slice $newOwner = $body~$Slice$_fun_loadAddress();
+        cell $mdCell = $body~$Slice$_fun_loadRef();
+        cell $metadata = $mdCell;
+        int $id = $self'nextId;
+        $self'tokens~__tact_dict_set_int_cell(257, $id, $Token$_store_cell($Token$_constructor_owner_metadata($newOwner, $metadata), begin_cell()));
+        $self'nextId = ($id + 1);
+    }
+    $DogNftMinter$_contract_store(($self'owner, $self'nextId, $self'tokens));
+}
+
+
+() __tact_selector_hack_asm() impure asm """
+@atend @ 1 {
+        execute current@ context@ current!
+        {
+            // The core idea of this function is to save gas by avoiding unnecessary dict jump, when recv_internal/recv_external is called
+            // We want to extract recv_internal/recv_external from the dict and select needed function
+            // not by jumping to the needed function by it's index, but by using usual IF statements.
+
+            }END> b> // Close previous builder, now we have a cell of previous code on top of the stack
+
+            <{ // Start of the new code builder
+                SETCP0
+                // Swap the new code builder with the previous code, now we have previous code on top of the stack
+                swap
+                // Transform cell to slice and load first ref from the previous code, now we have the dict on top of the stack
+                <s ref@
+
+                // Extract the recv_internal from the dict
+                dup 0 swap @procdictkeylen idict@ { "internal shortcut error" abort } ifnot
+                swap
+
+                // Delete the recv_internal from the dict
+                0 swap @procdictkeylen idict- drop
+                // Delete the recv_external from the dict (it's okay if it's not there)
+                -1 swap @procdictkeylen idict- drop
+                // Delete the __tact_selector_hack from the dict
+                65535 swap @procdictkeylen idict- drop
+
+                // Bring the code builder from the bottom of the stack
+                // because if recv_external extraction is optional, and the number of elements on the stack is not fixed
+                depth 1- roll
+                // Swap with the dict from which we extracted recv_internal and (maybe) recv_external
+                swap
+
+                // Check if the dict is empty
+                dup null?
+                // Store a copy of this flag in the bottom of the stack
+                dup depth 1- -roll
+                {
+                    // If the dict is empty, just drop it (it will be null if it's empty)
+                    drop
+                }
+                {
+                    // If the dict is not empty, prepare continuation to be stored in c3
+                    <{
+                        // Save this dict as first ref in this continuation, it will be pushed in runtime by DICTPUSHCONST
+                        swap @procdictkeylen DICTPUSHCONST
+                        // Jump to the needed function by it's index
+                        DICTIGETJMPZ
+                        // If such key is not found, throw 11 along with the key as an argument
+                        11 THROWARG
+                    }> PUSHCONT
+                    // Store the continuation in c3
+                    c3 POP
+                } cond
+
+                // Function id is on top of the (runtime) stack
+                DUP IFNOTJMP:<{
+                    // place recv_internal here
+                    DROP swap @addop
+                }>
+
+                // Bring back the flag, indicating if the dict is empty or not from the bottom of the stack
+                depth 1- roll
+                {
+                    // If the dict is empty, throw 11
+                    11 THROWARG
+                }
+                {
+                    // If the dict is not empty, jump to continuation from c3
+                    c3 PUSH JMPX
+                } cond
+            }> b>
+        } : }END>c
+        current@ context! current!
+    } does @atend !
+""";
+
+() __tact_selector_hack() method_id(65535) {
+    return __tact_selector_hack_asm();
+}
